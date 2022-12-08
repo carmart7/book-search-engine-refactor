@@ -5,8 +5,9 @@ import { getMe, deleteBook } from '../utils/API';
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
 
-import { useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { QUERY_SAVED } from '../utils/queries';
+import { DELETE_BOOK } from '../utils/mutations';
 
 const SavedBooks = () => {
   // const [userData, setUserData] = useState({});
@@ -14,10 +15,26 @@ const SavedBooks = () => {
   const { loading, data: userData } = useQuery(QUERY_SAVED, {
     variables: { userId: Auth.getProfile().data._id }
   });
+  let deletedBookId;
+  const [ deleteBook, {error, data}] = useMutation(DELETE_BOOK, {
+    update(cache, {data: {deleteBook}}) {
+      try {
+        const { getSingleUser } = cache.readQuery({ query: QUERY_SAVED });
+
+        cache.writeQuery({
+          query: QUERY_SAVED,
+          data: { getSingleUser: {...getSingleUser, savedBooks: getSingleUser.savedBooks.filter((book) => book.bookId != deletedBookId)}}
+        })
+        
+      } catch (error) {
+        
+      }
+    }
+  });
   const userDataBooks = userData?.getSingleUser.savedBooks || []
 
   if(!loading){
-    console.log("user data", userData.getSingleUser.savedBooks.length);
+    console.log("user data", userData.getSingleUser.savedBooks);
   }
   // const userDataLength = Object.keys(data).length;
   
@@ -55,16 +72,20 @@ const SavedBooks = () => {
     }
 
     try {
-      const response = await deleteBook(bookId, token);
+      // const response = await deleteBook(bookId, token);
+      const {data} = await deleteBook({
+        variables: { userId: Auth.getProfile().data._id, bookId}
+      })
+      // if (!response.ok) {
+      //   throw new Error('something went wrong!');
+      // }
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      const updatedUser = await response.json();
+      // const updatedUser = await response.json();
       // setUserData(updatedUser);
       // upon success, remove book's id from localStorage
+      
       removeBookId(bookId);
+      deletedBookId = bookId;
     } catch (err) {
       console.error(err);
     }
