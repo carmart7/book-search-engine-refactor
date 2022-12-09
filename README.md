@@ -55,7 +55,7 @@ The front end has been refactored to use graphql statements and are much shorter
 
 Previously the book delete route would require an api route to be hit with the body containing the book and user information. The server side function for this route is shown below.
 ```js
-async deleteBook({ user, params }, res) { //DONE IN GRAPHQL
+async deleteBook({ user, params }, res) {
     const updatedUser = await User.findOneAndUpdate(
       { _id: user._id },
       { $pull: { savedBooks: { bookId: params.bookId } } },
