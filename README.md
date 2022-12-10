@@ -1,4 +1,4 @@
-# Book Search Engine - Refactoring CRUD Routes to GraphQL
+# Book Search Engine - Refactoring CRUD Express routes to GraphQL
 
 ## Description
 
